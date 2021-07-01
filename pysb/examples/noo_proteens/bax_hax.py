@@ -18,3 +18,11 @@ Model()
 # the BAX, binding sites, diff site states
 # shell setup for future initiations of the BAX
 Monomer('BAX', ['t1', 't2'], {'t1' : ['actv', 'inactv']}, {'t2' : ['actv', 'inactv']} )  
+
+# how program 'under stress conditions' ... that cause conformation change, 
+# ... ... the conf-change that thus causes movement (translocation) to mito-memb
+# https://www.uniprot.org/uniprot/Q07812
+
+
+
+
