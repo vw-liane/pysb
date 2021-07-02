@@ -466,6 +466,8 @@ class Monomer(Component):
         Allowable states for sites. Keys are sites and values are lists of
         states. Sites which only take part in bond formation and never take on a
         state may be omitted.
+        
+    include tail as 'site'??
 
     Attributes
     ----------
