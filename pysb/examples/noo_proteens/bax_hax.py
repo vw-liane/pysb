@@ -44,11 +44,19 @@ such that BAX is primarily cytosolic.
 # BAX, ubiquitin , BCL-xL
 ##  BAX + Ub <--> BAX:Ub   (tagged)
 ##  BAX:Ub + BCL-xL <--> (BAX:Ub):BCL-xL  (shuttle from mito)
-##  (BAX:Ub):BCL-xL <--> BAX + Ub + BCL-xL
+##  (BAX:Ub):BCL-xL <--> BAX + Ub + BCL-xL  (disassociation)
 
-# didn't put forward/backward rate
 Rule('BAX_death_tag', BAX(tag='untaken', tail='cyto_float', bh3='unbound') + UBIT(death_tag='ungiven') | 
           BAX(tag='taken') % UBIT(death_tag='given'), kf, kr)
+
+# can we write more than two things being bound?
+# need to rewrite -tail and -bh3 state for BAX??
+Rule('BCL_XL_chaperoning_BAX', BAX(tag='taken', bh3='unbound') % UBIT(death_tag='given') + BCL-XL(bh3='unbound') |
+          BAX(tag='taken', bh3='bound') % UBIT(death_tag='given') % BCL=XL(bh3='bound'), kf, kr)
+
+# disassociate rule, BAX released to free cytosol
+Rule('Unchaperone_BAX', BAX(tag='taken', bh3='bound') % UBIT(death_tag='given') % BCL-XL(bh3='bound') |
+         BAX(tag='untaken', bh3='unbound') + UBIT(death_tag='ungiven') + BCL-XL(bh3='unbound') )
 
      
      
@@ -81,9 +89,3 @@ Mitochondria('MOM', ['pore1', 'pore2', 'pore3'],
              {'pore3' : ['mono-bax', 'di-bax', 'multi-bax', 'no-bax']} )
 
 ## pending - Monomer('P53', [] )
-
-
-
-
-
-
