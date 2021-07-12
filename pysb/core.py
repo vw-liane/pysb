@@ -252,15 +252,13 @@ class Component(object):
             SelfExporter.rename(self, new_name)
         self.name = new_name
 
-        
-        
 ##########################################
-############ START MITOCHONDRIA ##########    
-        
+############ START MITOCHONDRIA ##########
+
+
 class Mitochondria(Component):
     """
     Model component representing a mitochondria organelle.
-
     Parameters
     ----------
     sites : list of strings, optional
@@ -268,32 +266,28 @@ class Mitochondria(Component):
         *Inner Membrane
         *Outer Membrane
         *also diff pores? ... only if a receptor protein is there?
-        
+
         * so 'site' is also receptor protein
-        
+
     site_states : dict of string => string, optional
         Allowable states for sites. Keys are sites and values are lists of
         states. Sites which only take part in bond formation and never take on a
         state may be omitted.
-        
+
         * and so states of pores
         * and states of sites on the Membrane
-    
-    
+
 
     Attributes
     ----------
     Identical to Parameters (see above).
-
     Notes
     -----
-
     # Let's tag/label/ connect a mitochondria to the cell's apoptosis state
     .... by an updateApop() function?
-    
+
     Bax pores: https://royalsocietypublishing.org/doi/pdf/10.1098/rstb.2016.0217
     2017 Ugarte-Uribe "Apoptotic foci at mitochondria: in and around Bax pores"
-
     A Monomer instance may be \"called\" like a function to produce a
     MonomerPattern, as syntactic sugar to approximate rule-based modeling
     language syntax. It is typically called with keyword arguments where the arg
@@ -303,12 +297,11 @@ class Mitochondria(Component):
     (for example if a site name is computed dynamically or stored in a variable)
     a dict following the same layout as the kwargs may be passed as the first
     and only positional argument instead.
-
     Site names and state values must start with a letter, or one or more
     underscores followed by a letter. Any remaining characters must be
     alphanumeric or underscores.
     """
-    
+
     ## the magic
     ## #########
     def __init__(self, name, sites=None, site_states=None, _export=True):
@@ -317,13 +310,11 @@ class Mitochondria(Component):
             sites = []
         if site_states is None:
             site_states = {}
-
         # ensure sites is some kind of list (presumably of strings) but not a
         # string itself
         if not isinstance(sites, Iterable) or \
-               isinstance(sites, str):
+                isinstance(sites, str):
             raise ValueError("sites must be a list of strings")
-
         # ensure no duplicate sites and validate each site name
         sites_seen = {}
         for site in sites:
@@ -331,7 +322,6 @@ class Mitochondria(Component):
                 raise ValueError('Invalid site name: ' + str(site))
             sites_seen.setdefault(site, 0)
             sites_seen[site] += 1
-
         # ensure site_states keys are all known sites
         unknown_sites = [site for site in site_states if not site in sites_seen]
         if unknown_sites:
@@ -345,7 +335,6 @@ class Mitochondria(Component):
         if invalid_sites:
             raise ValueError("Invalid or non-string state values in "
                              "site_states for sites: " + str(invalid_sites))
-
         self.sites = list(sites)
         self.site_states = site_states
         Component.__init__(self, name, _export)
@@ -353,16 +342,13 @@ class Mitochondria(Component):
     def __call__(self, conditions=None, **kwargs):
         """
         Return a MonomerPattern object based on this Monomer.
-
         See the Notes section of this class's documentation for details.
-
         Parameters
         ----------
         conditions: dict, optional
             See MonomerPattern.site_conditions.
         **kwargs: Union[None, int, str, Tuple[str,int], MultiSite, List[int]]
             See MonomerPattern.site_conditions.
-
         """
         ## don't think need MitochondriaPattern?
         return MonomerPattern(self, extract_site_conditions(conditions,
@@ -376,6 +362,7 @@ class Mitochondria(Component):
             value += ', %s' % repr(self.site_states)
         value += ')'
         return value
+
 
 # all 'monomer' changed to 'mito'
 def _check_state(mito, site, state):
@@ -391,26 +378,27 @@ def _check_state(mito, site, state):
 def _check_bond(bond):
     """ A bond can either by a single int, WILD, ANY, or a list of ints """
     return (
-        isinstance(bond, int)
-        or bond is WILD    ## what does 'WILD' mean?
-        or bond is ANY
-        or isinstance(bond, list) and all(isinstance(b, int) for b in bond)
+            isinstance(bond, int)
+            or bond is WILD  ## what does 'WILD' mean?
+            or bond is ANY
+            or isinstance(bond, list) and all(isinstance(b, int) for b in bond)
     )
 
 
 def is_state_bond_tuple(state):
     """ Check the argument is a (state, bond) tuple for a Mononer site """
     return (
-        isinstance(state, tuple)
-        and len(state) == 2
-        and isinstance(state[0], str)
-        and _check_bond(state[1])
+            isinstance(state, tuple)
+            and len(state) == 2
+            and isinstance(state[0], str)
+            and _check_bond(state[1])
     )
 
 
-def _check_state_bond_tuple(monomer, site, state):
+def _check_state_bond_tuple(mito, site, state):
     """ Check that 'state' is a (state, bond) tuple, and validate the state """
-    return is_state_bond_tuple(state) and _check_state(monomer, site, state[0])
+    return is_state_bond_tuple(state) and _check_state(mito, site, state[0])
+
 
 # all 'monomer' changed to 'mito'
 def validate_site_value(state, mito=None, site=None, _in_multistate=False):
@@ -430,7 +418,6 @@ def validate_site_value(state, mito=None, site=None, _in_multistate=False):
     elif isinstance(state, MultiState):
         if _in_multistate:
             raise ValueError('Cannot nest MultiState within each other')
-
         if mito and site:
             site_counts = collections.Counter(mito.sites)
             if len(state) > site_counts[site]:
@@ -438,21 +425,15 @@ def validate_site_value(state, mito=None, site=None, _in_multistate=False):
                     'MultiState for site "{}" on mitochondria "{}" has maximum '
                     'length {}'.format(site, mito.name, site_counts[site])
                 )
-
             return all(validate_site_value(s, mito, site, True) for s in
                        state)
-
         return True
     else:
         return False
 
+
 ##########################################
 ############ END MITOCHONDRIA ############
-        
-        
-        
-        
-        
 
 class Monomer(Component):
     """
@@ -466,8 +447,6 @@ class Monomer(Component):
         Allowable states for sites. Keys are sites and values are lists of
         states. Sites which only take part in bond formation and never take on a
         state may be omitted.
-        
-    include tail as 'site'??
 
     Attributes
     ----------
