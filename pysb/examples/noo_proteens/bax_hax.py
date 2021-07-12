@@ -16,19 +16,19 @@ from pysb import *
 Model('your_cell')
 
 # random numbers
-kf = 1e-5
-kr = 2e-4
+KF = 1e-5
+KR = 2e-4
 
 
 # the BAX, binding sites, diff site states
 # shell setup for future initiations of the BAX
 # the tail hooks into the MOM, mitochondrial outer membrane
-Monomer('BAX', ['t1', 't2', 'bh3', 'tag', 'tail'], {'t1' : ['actv', 'inactv']}, {'t2' : ['actv', 'inactv']}, 
-        {'bh3' : ['bound', 'unbound']}, {'tag' : ['taken', 'untaken']}, {'tail' : ['mom_hooked', 'cyto_float']} )  
+Monomer('BAX', ['t1', 't2', 'bh3', 'tag', 'tail'], {'t1' : ['actv', 'inactv'], 't2' : ['actv', 'inactv'],
+        'bh3' : ['bound', 'unbound'], 'tag' : ['taken', 'untaken'], 'tail' : ['mom_hooked', 'cyto_float']} )
 
 # temporary intervening-shuttling
 ## figure 2 of Moldoveanu
-Monomer('BCL-XL', ['bh3'], {'bh3' : ['bound', 'unbound']} )
+Monomer('BCL_XL', ['bh3'], {'bh3' : ['bound', 'unbound']} )
 # UBIT gives a tag of death
 Monomer('UBIT', ['death_tag'], {'death_tag' : ['given', 'ungiven']} )  
 
@@ -47,16 +47,22 @@ such that BAX is primarily cytosolic.
 ##  (BAX:Ub):BCL-xL <--> BAX + Ub + BCL-xL  (disassociation)
 
 Rule('BAX_death_tag', BAX(tag='untaken', tail='cyto_float', bh3='unbound') + UBIT(death_tag='ungiven') | 
-          BAX(tag='taken') % UBIT(death_tag='given'), kf, kr)
+    BAX(tag='taken') % UBIT(death_tag='given'),
+    Parameter('BAX_death_tag_kf', KF), Parameter('BAX_death_tag_kr', KR) )
 
 # can we write more than two things being bound?
 # need to rewrite -tail and -bh3 state for BAX??
-Rule('BCL_XL_chaperoning_BAX', BAX(tag='taken', bh3='unbound') % UBIT(death_tag='given') + BCL-XL(bh3='unbound') |
-          BAX(tag='taken', bh3='bound') % UBIT(death_tag='given') % BCL=XL(bh3='bound'), kf, kr)
+Rule('BCL_XL_chaperoning_BAX', (BAX(tag='taken', bh3='unbound') % UBIT(death_tag='given')) + BCL_XL(bh3='unbound') |
+     (BAX(tag='taken', bh3='bound') % UBIT(death_tag='given')) % BCL_XL(bh3='bound'),
+     Parameter('BCL_XL_chaperoning_BAX_kf', KF), Parameter('BCL_XL_chaperoning_BAX_kr', KR))
+          #BAX(tag='taken', bh3='bound') % UBIT(death_tag='given'), kf, kr)
+#Rule('BCL_XL_chaperoning_BAX', BAX(tag='taken', bh3='unbound') % UBIT(death_tag='given') |
+
 
 # disassociate rule, BAX released to free cytosol
-Rule('Unchaperone_BAX', BAX(tag='taken', bh3='bound') % UBIT(death_tag='given') % BCL-XL(bh3='bound') |
-         BAX(tag='untaken', bh3='unbound') + UBIT(death_tag='ungiven') + BCL-XL(bh3='unbound') )
+Rule('Unchaperone_BAX', BAX(tag='taken', bh3='bound') % UBIT(death_tag='given') % BCL_XL(bh3='bound') |
+    BAX(tag='untaken', bh3='unbound') + UBIT(death_tag='ungiven') + BCL_XL(bh3='unbound'),
+    Parameter('Unchaperone_BAX_kf', KF), Parameter('Unchaperone_BAX_kr', KR))
 
      
      
@@ -84,8 +90,8 @@ Rule('Unchaperone_BAX', BAX(tag='taken', bh3='bound') % UBIT(death_tag='given') 
 # default is no-bax
 # no-bax always when bax NOT activated
 Mitochondria('MOM', ['pore1', 'pore2', 'pore3'], 
-             {'pore1' : ['mono-bax', 'di-bax', 'multi-bax', 'no-bax']},
-             {'pore2' : ['mono-bax', 'di-bax', 'multi-bax', 'no-bax']}
-             {'pore3' : ['mono-bax', 'di-bax', 'multi-bax', 'no-bax']} )
+             {'pore1' : ['mono-bax', 'di-bax', 'multi-bax', 'no-bax'],
+             'pore2' : ['mono-bax', 'di-bax', 'multi-bax', 'no-bax'],
+             'pore3' : ['mono-bax', 'di-bax', 'multi-bax', 'no-bax']} )
 
 ## pending - Monomer('P53', [] )
